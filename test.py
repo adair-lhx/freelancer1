@@ -186,31 +186,37 @@ def hackpack(model_rec,job,freelancer_2,freelancer_1,t_fl,fl_train_skill_list,cl
 
 
     job = torch.tensor(job, device=device)
+    print("job",job)
     freelancer_2 = torch.tensor(freelancer_2, device=device)
+    print("freelancer_2", freelancer_2)
     freelancer_1 = torch.tensor(freelancer_1, device=device)
+    print("freelancer_1", freelancer_1)
     # get skill embedding
     a = torch.tensor(cl_train_skill_list[job], device=device, dtype=torch.bool)
-
+    print("a",a)
     b_2 = torch.tensor(fl_train_skill_list[freelancer_2], device=device, dtype=torch.bool)
+    print("b_2", b_2)
     b_1 = torch.tensor(fl_train_skill_list[freelancer_1], device=device, dtype=torch.bool)
+    print("b_1", b_1)
     # embedding_lancer_m1 = model_rec.linear_cl_skill(b_1)
     #
     # embedding_lancer_m2 = model_rec.linear_cl_skill(b_2)
     t_fl = torch.tensor(t_fl, device=device)
+
     embedding_lancer_m1, _ = model_rec.get_skill(t_fl, b_1)
 
     embedding_lancer_m2, _ = model_rec.get_skill(t_fl, b_2)
-
+    print("embedding_lancer_m2",  embedding_lancer_m2)
     embedding_job_m, embedding_lancer = model_rec.get_skill(t_fl, a)
-
+    print(" embedding_job_m",  embedding_job_m)
     embedding_m1 = torch.mul(embedding_job_m, embedding_lancer_m1)
 
     embedding_m2 = torch.mul(embedding_job_m, embedding_lancer_m2)
-
+    print("embedding_m2", embedding_m2)
     skill_embedding_m1 = torch.sum(embedding_m1).unsqueeze(0)
 
     skill_embedding_m2 = torch.sum(embedding_m2).unsqueeze(0)
-
+    print("skill_embedding_m2", skill_embedding_m2)
     # get weight
     W_fea = model_rec.feature.weight
     W_score = model_rec.affine_output.weight
@@ -254,16 +260,17 @@ def hackpack(model_rec,job,freelancer_2,freelancer_1,t_fl,fl_train_skill_list,cl
     # print("torch.matmul(W_fea,feature_vector_2)", torch.matmul(W_fea, feature_vector_2))
     # print("torch.matmul(W_score,rate_vector_2)", torch.matmul(W_score, rate_vector_2))
 
-    V = torch.matmul(W_fea, feature_vector_1) + torch.matmul(W_score, rate_vector_1) + torch.matmul(W_C,
-                                                                                                    skill_embedding_m1) \
+    V = torch.matmul(W_fea, feature_vector_1) + torch.matmul(W_score, rate_vector_1) + torch.matmul(W_C,skill_embedding_m1) \
         - torch.matmul(W_fea, feature_vector_2) - torch.matmul(W_score, rate_vector_2)
-
-
+    print("V",V)
+    print("W_C",W_C)
     # print("W_C", W_C)
     U = V / W_C - skill_embedding_m2
+
+
     # if W_C >0:
     #     U = -U
-    # print("U", U)
+    print("U", U)
 
     # skill = skill_deal1.skill_list(skill_fl, skill_cl)
 
@@ -358,12 +365,15 @@ def hackpack(model_rec,job,freelancer_2,freelancer_1,t_fl,fl_train_skill_list,cl
 def dp_hackpack(model_rec,job,freelancer_2,freelancer_1,t_fl,fl_train_skill_list,cl_train_skill_list,skill1,feature2,device,feature_info,bid_fl_pre):
 
     job = torch.tensor(job, device=device)
+    print("job ", job )
     freelancer_2 = torch.tensor(freelancer_2, device=device)
+    print("freelancer_2  ", freelancer_2 )
     freelancer_1 = torch.tensor(freelancer_1, device=device)
     # get skill embedding
     a = torch.tensor(cl_train_skill_list[job], device=device, dtype=torch.bool)
 
     b_2 = torch.tensor(fl_train_skill_list[freelancer_2], device=device, dtype=torch.bool)
+
     b_1 = torch.tensor(fl_train_skill_list[freelancer_1], device=device, dtype=torch.bool)
     # embedding_lancer_m1 = model_rec.linear_cl_skill(b_1)
     #
@@ -434,7 +444,10 @@ def dp_hackpack(model_rec,job,freelancer_2,freelancer_1,t_fl,fl_train_skill_list
 
     # print("W_C", W_C)
     U = V / W_C - skill_embedding_m2
-
+    print("V", V)
+    print("W_C", W_C)
+    print("U",U )
+    print("skill_embedding_m2",skill_embedding_m2)
     skill_freelancer_2 = feature2['skill']
 
 
@@ -547,45 +560,51 @@ def test(model,jobs, freelancers_fal,freelancers, feature1, fl_train_skill_list,
     t_fl = torch.tensor(t_fl, device=device, dtype=torch.float)
 
     freelancers = torch.tensor(freelancers, device=device, dtype=torch.long)
+
     index_new = {}
     for i in range(len(freelancers_fal)):
         index_new[i] = freelancers_fal[i]
+    print(" index_new",  index_new)
+    print(" freelancers_fal",freelancers_fal)
     web = 1
     predictions, _ = model(jobs, freelancers, freelancers_fal,feature1, fl_train_skill, cl_train_skill, t_fl, web)
 
     # print("predictions",predictions)
     top_k =  predictions.size(0)
 
+
     shang = top_k*0.1
 
-    xia = top_k * 0.5
+    xia = top_k * 0.3
 
     _, indices = torch.topk(predictions, top_k)
-
+    print("value",_)
+    print("indices",indices)
     lis_ind = indices.cpu().numpy().tolist()
     # print(lis_ind)
     # ind = lis_ind.index(indices.size(0)-1)
 
-
+    print("3344",len(freelancers_fal) - 1)
     ind = lis_ind.index(len(freelancers_fal) - 1)
-    print("ind",ind)
 
-    ind = lis_ind.index(len(freelancers_fal)-1)
-    if ind <10:
-        print(ind)
-        print(predictions)
+    print("ind",ind)
+    print(int(top_k * 0.05))
+
+    # ind = lis_ind.index(len(freelancers_fal)-1)
+
+
     # job_bool = True
     if ind < xia and ind > shang:
         job_bool = True
         print("ind",ind)
         print("top_k", top_k)
         print("job",jobs[0])
-        print("predictions",predictions[indices])
+
         # print("ind_save", ind)
 
 
     recommends = indices[:ind+100].tolist()
-
+    print("recommends",recommends)
 
     #index = [21, 25, 30, 40, 60, 80, 100, 150, 200, 300, 400, 600, 800, 1000, 1500, 2000, 3000]
 
@@ -596,6 +615,7 @@ def test(model,jobs, freelancers_fal,freelancers, feature1, fl_train_skill_list,
     for i in index:
         freelancer_2.append(index_new[recommends[i]])
         index_temp[index_new[recommends[i]]]  = i
+
     freelancer_1 = index_new[recommends[int(top_k*0.05)]]
 
     return freelancers[0],freelancer_1, freelancer_2,index_temp,job_bool
@@ -965,6 +985,7 @@ def job_smallskill():
             st.session_state['skill'] = 1
 
 def job_bigskill():
+
     if 'test_demo' not in st.session_state:
         st.warning('您之前的内容还未填写')
         st.stop()
@@ -1044,6 +1065,7 @@ def job_bigskill():
 
         st.table(df1)
         if submitted1:
+            print("tijiao")
             for lancer in freelancer_2:
                 list_skill = hackpack(model, job_like, lancer, freelancer_1, t_fl, fl_train_skill_list, cl_train_skill_list,skill,feature2,device,feature_info,bid_fl_pre)
                 if 'skill_len' in st.session_state:
@@ -1120,7 +1142,7 @@ def skill_nocompe():
 
         pro7 = st.radio(
             "7.如果您需要花费一些时间学习新技能以得到这份工作（或类似的工作），那么您近期愿意投入多少时间来掌握这些技能？",
-            ('20 小时', '40 小时', '80 小时', '160 小时', '320 小时'))
+            ('20小时', '40小时', '80小时', '160小时', '320小时'))
 
         submitted2 = st.form_submit_button("提交")
         if submitted2:
@@ -1152,7 +1174,7 @@ def skill_compe():
 
         pro7 = st.radio(
             "7.如果您需要花费一些时间学习新技能以得到这份工作（或类似的工作），那么您近期愿意投入多少时间来掌握这些技能？",
-            ('20 小时', '40 小时', '80 小时', '160 小时', '320 小时'))
+            ('20小时', '40小时', '80小时', '160小时', '320小时'))
 
         submitted2 = st.form_submit_button("提交")
 
@@ -1192,7 +1214,7 @@ def skill_demo():
     with st.form("my_form1"):
         pro8 = st.radio(
             "8.您会选择哪种策略来学习技能？",
-            ('1 – 必定会选择策略A',	'2'	,'3'	,'4','	5'	,'6',	'7 – 必定会选择策略B'))
+            ('1–必定会选择策略A',	'2'	,'3'	,'4','	5'	,'6',	'7–必定会选择策略B'))
 
         submitted2 = st.form_submit_button("提交")
         if submitted2:
@@ -1215,7 +1237,7 @@ def skill_nocompe1():
     with st.form("my_form1"):
         pro9 = st.radio(
             "9.根据我们推荐系统的建议，您近期愿意投入多少时间来掌握这些技能？",
-            ('20 小时', '40 小时', '80 小时', '160 小时', '320 小时'))
+            ('20小时', '40小时', '80小时', '160小时', '320小时'))
         submitted2 = st.form_submit_button("提交")
         if submitted2:
             st.session_state['pro9'] = pro9
@@ -1238,7 +1260,7 @@ def skill_compe1():
     with st.form("my_form1"):
         pro9 = st.radio(
             "9.根据我们推荐系统的建议，您近期愿意投入多少时间来掌握这些技能？",
-            ('20 小时', '40 小时', '80 小时', '160 小时', '320 小时'))
+            ('20小时', '40小时', '80小时', '160小时', '320小时'))
         submitted2 = st.form_submit_button("提交")
         if submitted2:
             st.session_state['pro9'] = pro9
@@ -1320,6 +1342,19 @@ def inform():
         if submitted2:
             st.session_state['inform'] = 1
             st.write('提交完成')
+import mysql.connector
+@st.experimental_singleton
+def init_connection():
+    return mysql.connector.connect(**st.secrets["mysql"])
+
+conn = init_connection()
+
+@st.experimental_memo(ttl=600)
+def run_query(query):
+    with conn.cursor() as cur:
+        cur.execute(query)
+        return cur.fetchall()
+
 def inform1():
     import streamlit as st
     import pymysql
@@ -1339,34 +1374,80 @@ def inform1():
     with st.form("my_form1"):
         st.session_state['pro18'] = st.radio(
             "安全第一",
-            ('1 – 完全不同意', '2','3','4','5','6','7','8',	'9 –完全同意'))
+            ('1–完全不同意', '2','3','4','5','6','7','8',	'9–完全同意'))
         st.session_state['pro19']= st.radio(
             "我不会用我的健康冒险。",
-            ('1 – 完全不同意', '2','3','4','5','6','7','8',	'9 –完全同意'))
+            ('1–完全不同意', '2','3','4','5','6','7','8',	'9–完全同意'))
         st.session_state['pro20'] = st.radio(
             "我倾向于规避风险。",
-            ('1 – 完全不同意', '2','3','4','5','6','7','8',	'9 –完全同意'))
+            ('1–完全不同意', '2','3','4','5','6','7','8',	'9–完全同意'))
         st.session_state['pro21'] = st.radio(
             "我经常冒险。",
-            ('1 – 完全不同意', '2', '3', '4', '5', '6', '7', '8', '9 –完全同意'))
+            ('1–完全不同意', '2', '3', '4', '5', '6', '7', '8', '9–完全同意'))
         st.session_state['pro22'] = st.radio(
             "我讨厌“不知道将要发生什么”的感觉。",
-            ('1 – 完全不同意', '2', '3', '4', '5', '6', '7', '8', '9 –完全同意'))
+            ('1–完全不同意', '2', '3', '4', '5', '6', '7', '8', '9–完全同意'))
         st.session_state['pro23' ] = st.radio(
             "我通常认为风险是一种挑战。",
-            ('1 – 完全不同意', '2', '3', '4', '5', '6', '7', '8', '9 –完全同意'))
+            ('1–完全不同意', '2', '3', '4', '5', '6', '7', '8', '9–完全同意'))
         st.session_state['pro24'] = st.radio(
             "我认为自己是一个 . . .",
-            ('1 – 风险规避者', '2', '3', '4', '5', '6', '7', '8', '9 –风险寻求者'))
+            ('1–风险规避者', '2', '3', '4', '5', '6', '7', '8', '9–风险寻求者'))
 
         submitted2 = st.form_submit_button("提交")
         if submitted2:
             dict1 = {}
+            txt =''
+
+
             for i in st.session_state.keys():
                 dict1[i] = st.session_state[i]
-            print("dict1",dict1)
-            with open('./data/' + str(st.session_state['id']) +'_'+str(st.session_state['compe'])+ '/result.json', 'w+') as f:
-                json.dump(dict1 ,f,ensure_ascii=False)
+            dict1.pop('FormSubmitter:my_form1-提交')
+            print("dict1", dict1)
+            count = 1
+
+            # # keys = ', '.join(dict1.keys())
+            #
+            # values = list(dict1.values())
+            # values = str(values).strip('[]')
+
+
+            for i in dict1.keys():
+
+                if count == len(dict1):
+                    txt = txt + i + ',' + str(st.session_state[i]).strip('[]')
+                else:
+                    txt = txt + i + ',' + str(st.session_state[i]).strip('[]').replace('\'','')  +','
+                    count = count +1
+            # print("keys",keys)
+            print(txt)
+
+            try:
+                create_sqli = "create table survey ( id int auto_increment PRIMARY KEY, answer longtext);"
+                run_query(create_sqli)
+            except Exception as e:
+                print("创建数据表失败:", e)
+            else:
+                print("创建数据表成功;")
+
+                # ---------------插入---------
+            try:
+
+                # insert_sqli = "insert into survey (answer) values({keys1});".format(keys1="abc")
+                insert_sqli = "insert into survey (answer) values('{}');".format(txt)
+                print(insert_sqli)
+
+                run_query(insert_sqli)
+            except Exception as e:
+                print("插入数据失败:", e)
+            else:
+                # 如果是插入数据， 一定要提交数据， 不然数据库中找不到要插入的数据;
+
+                conn.commit()
+                print("插入数据成功;")
+            with open('./data/' + str(st.session_state['id']) + '_' + str(st.session_state['compe']) + '/result.json',
+                      'w+') as f:
+                json.dump(dict1, f, ensure_ascii=False)
             st.write('提交完成')
 
 # 竞争可知，考虑成本
