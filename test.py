@@ -1342,22 +1342,23 @@ def inform():
         if submitted2:
             st.session_state['inform'] = 1
             st.write('提交完成')
-import mysql.connector
-@st.experimental_singleton
-def init_connection():
-    return mysql.connector.connect(**st.secrets["mysql"])
+# import mysql.connector
+import pymysql
+# @st.experimental_singleton
+# def init_connection():
+#     return mysql.connector.connect(**st.secrets["mysql"])
 
-conn = init_connection()
+# conn = init_connection()
 
-@st.experimental_memo(ttl=600)
-def run_query(query):
-    with conn.cursor() as cur:
-        cur.execute(query)
-        return cur.fetchall()
+# @st.experimental_memo(ttl=600)
+# def run_query(query):
+#     with conn.cursor() as cur:
+#         cur.execute(query)
+#         return cur.fetchall()
 
 def inform1():
     import streamlit as st
-    import pymysql
+
     if 'test_demo' not in st.session_state or 'skill' not in st.session_state or 'survey1_demo' not in st.session_state or 'compe1' not in st.session_state or 'skill_demo' not in st.session_state or 'compe2' not in st.session_state or 'skill_demo1' not in st.session_state  or 'inform' not in st.session_state:
         st.warning('您之前的内容还未填写')
         st.stop()
@@ -1406,12 +1407,6 @@ def inform1():
             print("dict1", dict1)
             count = 1
 
-            # # keys = ', '.join(dict1.keys())
-            #
-            # values = list(dict1.values())
-            # values = str(values).strip('[]')
-
-
             for i in dict1.keys():
 
                 if count == len(dict1):
@@ -1420,31 +1415,54 @@ def inform1():
                     txt = txt + i + ',' + str(st.session_state[i]).strip('[]').replace('\'','')  +','
                     count = count +1
             # print("keys",keys)
-            print(txt)
+
+            connect = pymysql.connect(**st.secrets["mysql"])  # 服务器名,账户,密码，数据库名称
+            cur = connect.cursor()
 
             try:
-                create_sqli = "create table survey ( id int auto_increment PRIMARY KEY, answer longtext);"
-                run_query(create_sqli)
+                create_sqli = "create table survey (id int auto_increment PRIMARY KEY, answer longtext);"
+                cur.execute(create_sqli)
             except Exception as e:
                 print("创建数据表失败:", e)
             else:
                 print("创建数据表成功;")
 
-                # ---------------插入---------
+            # ---------------插入---------
             try:
 
-                # insert_sqli = "insert into survey (answer) values({keys1});".format(keys1="abc")
                 insert_sqli = "insert into survey (answer) values('{}');".format(txt)
-                print(insert_sqli)
 
-                run_query(insert_sqli)
+                cur.execute(insert_sqli)
             except Exception as e:
                 print("插入数据失败:", e)
             else:
                 # 如果是插入数据， 一定要提交数据， 不然数据库中找不到要插入的数据;
-
-                conn.commit()
+                connect.commit()
                 print("插入数据成功;")
+
+            # try:
+            #     create_sqli = "create table survey ( id int auto_increment PRIMARY KEY, answer longtext);"
+            #     run_query(create_sqli)
+            # except Exception as e:
+            #     print("创建数据表失败:", e)
+            # else:
+            #     print("创建数据表成功;")
+            #
+            #     # ---------------插入---------
+            # try:
+            #
+            #     # insert_sqli = "insert into survey (answer) values({keys1});".format(keys1="abc")
+            #     insert_sqli = "insert into survey (answer) values('{}');".format(txt)
+            #     print(insert_sqli)
+            #
+            #     run_query(insert_sqli)
+            # except Exception as e:
+            #     print("插入数据失败:", e)
+            # else:
+            #     # 如果是插入数据， 一定要提交数据， 不然数据库中找不到要插入的数据;
+            #
+            #     conn.commit()
+            #     print("插入数据成功;")
             with open('./data/' + str(st.session_state['id']) + '_' + str(st.session_state['compe']) + '/result.json',
                       'w+') as f:
                 json.dump(dict1, f, ensure_ascii=False)
